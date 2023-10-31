@@ -1,39 +1,75 @@
 <template>
   <div class="hello">
-    <h1>{{ msg }}</h1>
-    <p>
-      For a guide and recipes on how to configure / customize this project,<br>
-      check out the
-      <a href="https://cli.vuejs.org" target="_blank" rel="noopener">vue-cli documentation</a>.
-    </p>
-    <h3>Installed CLI Plugins</h3>
+    <form @submit.prevent="insert">
+      <p><input type="text" v-model="name"/></p>
+        <!-- 작성하기만 하면 v-model이란 변수에 name값이 저장될 것 -->
+      <p><input type="submit" value="저장"/></p>
+    </form>
+
     <ul>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-babel" target="_blank" rel="noopener">babel</a></li>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-router" target="_blank" rel="noopener">router</a></li>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-vuex" target="_blank" rel="noopener">vuex</a></li>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-eslint" target="_blank" rel="noopener">eslint</a></li>
-    </ul>
-    <h3>Essential Links</h3>
-    <ul>
-      <li><a href="https://vuejs.org" target="_blank" rel="noopener">Core Docs</a></li>
-      <li><a href="https://forum.vuejs.org" target="_blank" rel="noopener">Forum</a></li>
-      <li><a href="https://chat.vuejs.org" target="_blank" rel="noopener">Community Chat</a></li>
-      <li><a href="https://twitter.com/vuejs" target="_blank" rel="noopener">Twitter</a></li>
-      <li><a href="https://news.vuejs.org" target="_blank" rel="noopener">News</a></li>
-    </ul>
-    <h3>Ecosystem</h3>
-    <ul>
-      <li><a href="https://router.vuejs.org" target="_blank" rel="noopener">vue-router</a></li>
-      <li><a href="https://vuex.vuejs.org" target="_blank" rel="noopener">vuex</a></li>
-      <li><a href="https://github.com/vuejs/vue-devtools#vue-devtools" target="_blank" rel="noopener">vue-devtools</a></li>
-      <li><a href="https://vue-loader.vuejs.org" target="_blank" rel="noopener">vue-loader</a></li>
-      <li><a href="https://github.com/vuejs/awesome-vue" target="_blank" rel="noopener">awesome-vue</a></li>
+      <li v-for="(obj) in data" :key="obj.date">
+        <p>이름:{{ obj.name }}</p>
+        <p>생성날짜:{{ obj.date }}</p>
+        <p>좋아요:{{ obj.count }}</p>
+        <button @click="update(obj.date,obj.count)">💜</button>
+        <button @click="del(obj.date)">삭제</button>
+      </li>
     </ul>
   </div>
 </template>
 
 <script>
+import axios from 'axios';
 export default {
+  data(){
+    return{ name:'',data:[]}
+  },
+
+  mounted(){
+    this.select();
+  },
+
+  methods:{
+    select(){
+      axios
+      .get("http://localhost:3000/api")
+      .then(res=>{
+        this.data = res.data;
+      })
+    },
+    
+    del(date){
+      axios
+      .delete(`http://localhost:3000/api/delete?date=${date}`)
+      .then(res=>{
+        this.data = res.data;
+      })
+    },
+
+    update(date,count){
+      axios
+      .put(`http://localhost:3000/api/update?date=${date}`,
+        {count:count+1}
+      )
+      .then(res=>{
+        this.data = res.data;
+      })
+    },
+
+    insert(){
+      const data = {
+        name:this.name,
+        date:Date.now(),
+        count:0
+      }
+      axios
+      .post("http://localhost:3000/api/insert",data)
+      .then(res=>{
+        this.data = res.data;
+      })
+    }
+  },
+
   name: 'HelloWorld',
   props: {
     msg: String
@@ -41,20 +77,10 @@ export default {
 }
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="scss">
-h3 {
-  margin: 40px 0 0;
-}
-ul {
+li{
   list-style-type: none;
-  padding: 0;
-}
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-a {
-  color: #42b983;
+  border: 3px solid green;
+  display: flex; justify-content: space-between;
 }
 </style>
